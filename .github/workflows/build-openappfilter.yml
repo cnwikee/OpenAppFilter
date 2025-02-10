@@ -38,9 +38,6 @@ jobs:
           cp -r $GITHUB_WORKSPACE/luci-app-oaf openwrt-sdk/package/OpenAppFilter/
           cp -r $GITHUB_WORKSPACE/oaf openwrt-sdk/package/OpenAppFilter/
           cp -r $GITHUB_WORKSPACE/open-app-filter openwrt-sdk/package/OpenAppFilter/
-          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            cp -r $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn openwrt-sdk/package/OpenAppFilter/
-          fi
 
       # 步骤 6：配置编译选项
       - name: Configure build options
@@ -49,21 +46,15 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-oaf=y" >> .config
           echo "CONFIG_PACKAGE_kmod-oaf=y" >> .config
           echo "CONFIG_PACKAGE_appfilter=y" >> .config
-          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            echo "CONFIG_PACKAGE_luci-i18n-oaf-zh-cn=y" >> .config
-          fi
           make defconfig
 
       # 步骤 7：开始编译
       - name: Compile packages
         run: |
           cd openwrt-sdk
+          make package/OpenAppFilter/luci-app-oaf/compile V=s
           make package/OpenAppFilter/oaf/compile V=s
           make package/OpenAppFilter/open-app-filter/compile V=s
-          make package/OpenAppFilter/luci-app-oaf/compile V=s
-          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            make package/OpenAppFilter/luci-i18n-oaf-zh-cn/compile V=s
-          fi
 
       # 步骤 8：上传生成的 IPK 文件
       - name: Upload IPK files
@@ -75,4 +66,3 @@ jobs:
             openwrt-sdk/bin/packages/*/base/appfilter*.ipk
             openwrt-sdk/bin/packages/*/luci/luci-compat*.ipk
             openwrt-sdk/bin/packages/*/luci/luci-app-oaf*.ipk
-            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk
