@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # 监听main分支的推送事件，可根据实际情况修改
+  workflow_dispatch: # 支持手动触发工作流
 
 jobs:
   build:
@@ -11,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # 检出代码到工作目录
+        uses: actions/checkout@v4 # 检出代码到工作目录，使用v4版本
 
       - name: Install Dependencies
         run: |
@@ -57,7 +58,7 @@ jobs:
           cp -r openwrt/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk compiled_ipks/ # 将编译生成的IPK文件收集到指定目录
 
       - name: Upload Compiled IPKs as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: compiled-ipks
           path: compiled_ipks # 将编译好的IPK文件作为构建产物上传，方便后续下载使用
