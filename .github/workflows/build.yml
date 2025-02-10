@@ -1,4 +1,4 @@
-name: Build OpenAppFilter for OpenWrt 22.03.7
+name: Build OpenAppFilter by deepseek
 
 on:
   workflow_dispatch:
@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/openwrt/sdk/x86_64:22.03.7  # 修正后的官方镜像地址
-      options: --privileged
 
     steps:
     - name: Checkout code
@@ -18,35 +15,43 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Prepare environment
+    - name: Install dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y git subversion build-essential
+        sudo apt-get install -y build-essential libncurses5-dev python3 unzip wget
 
-    - name: Configure feeds
+    - name: Download OpenWrt SDK
       run: |
-        cat << EOF > feeds.conf.default
-        src-git packages https://git.openwrt.org/feed/packages.git^openwrt-22.03
-        src-git luci https://git.openwrt.org/project/luci.git^openwrt-22.03
-        EOF
-        
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+        # 清华大学镜像源下载 SDK（替换架构为实际值）
+        SDK_URL="https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/22.03.7/targets/x86/64/openwrt-sdk-22.03.7-x86-64_gcc-11.3.0_musl.Linux-x86_64.tar.xz"
+        wget $SDK_URL
+        tar -xf openwrt-sdk-*.tar.xz
+        mv openwrt-sdk-* openwrt-sdk
+        echo "SDK_PATH=$GITHUB_WORKSPACE/openwrt-sdk" >> $GITHUB_ENV
 
-    - name: Prepare package
+    - name: Configure environment
       run: |
-        mkdir -p package/openappfilter
-        cp -r $GITHUB_WORKSPACE/* package/openappfilter/
+        # 设置 SDK 环境变量
+        echo "PATH=$PATH:${{ env.SDK_PATH }}/staging_dir/toolchain-x86_64_gcc-11.3.0_musl/bin" >> $GITHUB_ENV
+        echo "STAGING_DIR=${{ env.SDK_PATH }}/staging_dir" >> $GITHUB_ENV
+
+    - name: Copy package to SDK
+      run: |
+        mkdir -p ${{ env.SDK_PATH }}/package/openappfilter
+        cp -r $GITHUB_WORKSPACE/* ${{ env.SDK_PATH }}/package/openappfilter/
 
     - name: Compile packages
       run: |
+        cd ${{ env.SDK_PATH }}
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
         make defconfig
         make package/openappfilter/compile V=s
 
     - name: Collect artifacts
       run: |
         mkdir -p artifacts
-        find bin -name '*oaf*.ipk' -exec cp {} artifacts/ \;
+        find ${{ env.SDK_PATH }}/bin -name '*.ipk' -exec cp {} artifacts/ \;
 
     - name: Upload packages
       uses: actions/upload-artifact@v4
