@@ -1,0 +1,62 @@
+name: Build OpenAppFilter for OpenWrt 22.03.7
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤 1：克隆你的仓库代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 步骤 2：设置编译环境
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev git unzip wget
+
+      # 步骤 3：下载 OpenWrt SDK（22.03.7 版本）
+      - name: Download OpenWrt SDK
+        run: |
+          wget https://downloads.openwrt.org/releases/22.03.7/targets/x86/64/openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
+          tar -xvf openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
+          mv openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64 openwrt-sdk
+
+      # 步骤 4：更新并安装 feeds
+      - name: Update and install feeds
+        run: |
+          cd openwrt-sdk
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      # 步骤 5：复制 OpenAppFilter 组件到 SDK
+      - name: Prepare packages
+        run: |
+          mkdir -p openwrt-sdk/package/openappfilter
+          cp -r luci-app-oaf openwrt-sdk/package/
+          cp -r oaf openwrt-sdk/package/
+          cp -r open-app-filter openwrt-sdk/package/openappfilter/
+
+      # 步骤 6：开始编译
+      - name: Compile packages
+        run: |
+          cd openwrt-sdk
+          make defconfig
+          make package/oaf/compile V=s
+          make package/appfilter/compile V=s
+          make package/luci-app-oaf/compile V=s
+          find . -type f -name "luci-i18n-oaf-zh-cn*.ipk" -exec make {} \;
+
+      # 步骤 7：上传生成的 IPK 文件
+      - name: Upload IPK files
+        uses: actions/upload-artifact@v4
+        with:
+          name: openappfilter-ipk
+          path: |
+            openwrt-sdk/bin/packages/*/base/kmod-oaf*.ipk
+            openwrt-sdk/bin/packages/*/base/appfilter*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-compat*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-app-oaf*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk
