@@ -35,8 +35,8 @@ jobs:
       - name: Prepare packages
         run: |
           mkdir -p openwrt-sdk/package/openappfilter
-          cp -r luci-app-oaf openwrt-sdk/package/
-          cp -r oaf openwrt-sdk/package/
+          cp -r luci-app-oaf openwrt-sdk/package/openappfilter/
+          cp -r oaf openwrt-sdk/package/openappfilter/
           cp -r open-app-filter openwrt-sdk/package/openappfilter/
 
       # 步骤 6：开始编译
@@ -44,9 +44,9 @@ jobs:
         run: |
           cd openwrt-sdk
           make defconfig
-          make package/oaf/compile V=s
-          make package/openappfilter/appfilter/compile V=s
-          make package/luci-app-oaf/compile V=s
+          make package/openappfilter/oaf/compile V=s
+          make package/openappfilter/open-app-filter/compile V=s
+          make package/openappfilter/luci-app-oaf/compile V=s
           make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s
 
       # 步骤 7：上传生成的 IPK 文件
