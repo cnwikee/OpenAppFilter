@@ -45,9 +45,9 @@ jobs:
           cd openwrt-sdk
           make defconfig
           make package/oaf/compile V=s
-          make package/appfilter/compile V=s
+          make package/openappfilter/appfilter/compile V=s
           make package/luci-app-oaf/compile V=s
-          find . -type f -name "luci-i18n-oaf-zh-cn*.ipk" -exec make {} \;
+          make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s
 
       # 步骤 7：上传生成的 IPK 文件
       - name: Upload IPK files
