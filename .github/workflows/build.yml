@@ -1,59 +1,55 @@
-name: Build OpenAppFilter
+name: Build OpenAppFilter for OpenWrt 22.03.7
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master ]
-  pull_request:
     branches: [ master ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
-      image: openwrtorg/sdk:latest
+      image: ghcr.io/openwrt/sdk/x86_64:22.03.7  # 修正后的官方镜像地址
       options: --privileged
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: recursive  # 重要！项目包含子模块
+        submodules: recursive
 
-    - name: Prepare OpenWrt SDK
+    - name: Prepare environment
       run: |
-        # 安装编译依赖
         sudo apt-get update -y
         sudo apt-get install -y git subversion build-essential
 
-    - name: Setup feeds
+    - name: Configure feeds
       run: |
-        # 配置feeds（根据项目需要）
-        echo src-git packages https://git.openwrt.org/feed/packages.git >> feeds.conf.default
-        echo src-git luci https://git.openwrt.org/project/luci.git >> feeds.conf.default
+        cat << EOF > feeds.conf.default
+        src-git packages https://git.openwrt.org/feed/packages.git^openwrt-22.03
+        src-git luci https://git.openwrt.org/project/luci.git^openwrt-22.03
+        EOF
+        
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
-    - name: Copy package to SDK
+    - name: Prepare package
       run: |
-        # 将项目复制到SDK的package目录
         mkdir -p package/openappfilter
         cp -r $GITHUB_WORKSPACE/* package/openappfilter/
 
-    - name: Configure and compile
+    - name: Compile packages
       run: |
-        # 配置并编译
         make defconfig
         make package/openappfilter/compile V=s
 
-    - name: Collect packages
+    - name: Collect artifacts
       run: |
-        # 创建存放产物的目录
         mkdir -p artifacts
-        # 复制所有生成的ipk文件
-        find bin -name '*.ipk' -exec cp {} artifacts/ \;
+        find bin -name '*oaf*.ipk' -exec cp {} artifacts/ \;
 
-    - name: Upload artifacts
+    - name: Upload packages
       uses: actions/upload-artifact@v4
       with:
-        name: OpenAppFilter-IPKs
+        name: OpenWrt-22.03.7-IPKs
         path: artifacts/
