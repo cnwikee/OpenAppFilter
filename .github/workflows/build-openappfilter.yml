@@ -38,6 +38,7 @@ jobs:
           cp -r luci-app-oaf openwrt-sdk/package/openappfilter/
           cp -r oaf openwrt-sdk/package/openappfilter/
           cp -r open-app-filter openwrt-sdk/package/openappfilter/
+          cp -r luci-i18n-oaf-zh-cn openwrt-sdk/package/openappfilter/
 
       # 步骤 6：开始编译
       - name: Compile packages
