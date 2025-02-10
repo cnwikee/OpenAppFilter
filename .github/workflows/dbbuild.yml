@@ -1,0 +1,63 @@
+name: Compile OpenAppFilter by doubao
+
+on:
+  push:
+    branches:
+      - main # 监听main分支的推送事件，可根据实际情况修改
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 使用最新的Ubuntu系统作为运行环境
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # 检出代码到工作目录
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip wget zlib1g-dev # 安装编译所需的基础依赖
+
+      - name: Prepare OpenWrt Source
+        run: |
+          git clone https://github.com/openwrt/openwrt
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          make defconfig
+          make V=s # 克隆OpenWrt源并进行初始化编译操作
+
+      - name: Download OAF Source Code
+        run: |
+          git clone https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter # 下载OAF源代码到OpenWrt的package目录
+
+      - name: Open Compile Configuration
+        run: |
+          cd openwrt
+          echo "CONFIG_PACKAGE_luci-app-oaf=y" >>.config  
+          make defconfig  # 配置OAF编译选项
+
+      - name: Compile OAF Separately
+        run: |
+          cd openwrt
+          make package/luci-app-oaf/compile V=s # 单独编译luci-app-oaf组件
+
+      - name: Compile the Entire Firmware (Optional)
+        run: |
+          cd openwrt
+          make V=s # 编译整个固件，若仅需特定IPK，此步骤可注释掉
+
+      - name: Collect Compiled IPKs
+        run: |
+          mkdir -p compiled_ipks
+          cp -r openwrt/bin/packages/*/base/kmod-oaf*.ipk compiled_ipks/
+          cp -r openwrt/bin/packages/*/packages/appfilter*.ipk compiled_ipks/
+          cp -r openwrt/bin/packages/*/luci/luci-compat*.ipk compiled_ipks/
+          cp -r openwrt/bin/packages/*/luci/luci-app-oaf*.ipk compiled_ipks/
+          cp -r openwrt/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk compiled_ipks/ # 将编译生成的IPK文件收集到指定目录
+
+      - name: Upload Compiled IPKs as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-ipks
+          path: compiled_ipks # 将编译好的IPK文件作为构建产物上传，方便后续下载使用
