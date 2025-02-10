@@ -32,10 +32,10 @@ jobs:
     - name: Copy OpenAppFilter package
       run: |
         mkdir -p openwrt/package/open-app-filter
-        cp -r luasrc openwrt/package/open-app-filter/
-        cp -r luci-app-oaf openwrt/package/open-app-filter/
-        cp -r oaf openwrt/package/open-app-filter/
-        cp -r open-app-filter openwrt/package/open-app-filter/
+        cp -r package/luasrc openwrt/package/open-app-filter/
+        cp -r package/luci-app-oaf openwrt/package/open-app-filter/
+        cp -r package/oaf openwrt/package/open-app-filter/
+        cp -r package/open-app-filter openwrt/package/open-app-filter/
 
     - name: Configure OpenWrt
       run: |
