@@ -38,7 +38,7 @@ jobs:
           cp -r luci-app-oaf openwrt-sdk/package/openappfilter/
           cp -r oaf openwrt-sdk/package/openappfilter/
           cp -r open-app-filter openwrt-sdk/package/openappfilter/
-          cp -r luci-i18n-oaf-zh-cn openwrt-sdk/package/openappfilter/
+          cp -r luci-i18n-oaf-zh-cn openwrt-sdk/package/openappfilter/ || echo "luci-i18n-oaf-zh-cn not found, skipping"
 
       # 步骤 6：开始编译
       - name: Compile packages
@@ -48,7 +48,7 @@ jobs:
           make package/openappfilter/oaf/compile V=s
           make package/openappfilter/open-app-filter/compile V=s
           make package/openappfilter/luci-app-oaf/compile V=s
-          make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s
+          make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s || echo "luci-i18n-oaf-zh-cn not found, skipping"
 
       # 步骤 7：上传生成的 IPK 文件
       - name: Upload IPK files
@@ -60,4 +60,4 @@ jobs:
             openwrt-sdk/bin/packages/*/base/appfilter*.ipk
             openwrt-sdk/bin/packages/*/luci/luci-compat*.ipk
             openwrt-sdk/bin/packages/*/luci/luci-app-oaf*.ipk
-            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk || echo "luci-i18n-oaf-zh-cn not found, skipping"
