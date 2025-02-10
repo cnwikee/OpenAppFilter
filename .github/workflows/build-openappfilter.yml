@@ -7,31 +7,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 步骤 1：克隆你的仓库代码
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 步骤 2：设置编译环境
       - name: Setup environment
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libncurses5-dev git unzip wget
 
-      # 步骤 3：下载 OpenWrt SDK（22.03.7 版本）
       - name: Download OpenWrt SDK
         run: |
           wget https://downloads.openwrt.org/releases/22.03.7/targets/x86/64/openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
           tar -xvf openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
           mv openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64 openwrt-sdk
 
-      # 步骤 4：更新并安装 feeds
       - name: Update and install feeds
         run: |
           cd openwrt-sdk
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 步骤 5：复制 OpenAppFilter 组件到 SDK
       - name: Prepare packages
         run: |
           mkdir -p openwrt-sdk/package/OpenAppFilter
@@ -39,7 +34,6 @@ jobs:
           cp -r $GITHUB_WORKSPACE/oaf openwrt-sdk/package/OpenAppFilter/
           cp -r $GITHUB_WORKSPACE/open-app-filter openwrt-sdk/package/OpenAppFilter/
 
-      # 步骤 6：配置编译选项
       - name: Configure build options
         run: |
           cd openwrt-sdk
@@ -48,15 +42,13 @@ jobs:
           echo "CONFIG_PACKAGE_appfilter=y" >> .config
           make defconfig
 
-      # 步骤 7：开始编译
       - name: Compile packages
         run: |
           cd openwrt-sdk
-          make package/OpenAppFilter/luci-app-oaf/compile V=s
           make package/OpenAppFilter/oaf/compile V=s
           make package/OpenAppFilter/open-app-filter/compile V=s
+          make package/OpenAppFilter/luci-app-oaf/compile V=s
 
-      # 步骤 8：上传生成的 IPK 文件
       - name: Upload IPK files
         uses: actions/upload-artifact@v4
         with:
