@@ -25,7 +25,7 @@ jobs:
           mv openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64 openwrt-sdk
 
       # 步骤 4：更新并安装 feeds
-      - name: Update and install feeds
+      - name: Update 和 install feeds
         run: |
           cd openwrt-sdk
           ./scripts/feeds update -a
@@ -50,7 +50,7 @@ jobs:
 
       # 步骤 7：上传生成的 IPK 文件
       - name: Upload IPK files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: openappfilter-ipk
           path: |
