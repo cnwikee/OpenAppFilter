@@ -61,8 +61,9 @@ jobs:
         with:
           name: openappfilter-ipk
           path: |
-            openwrt-sdk/bin/packages/*/base/kmod-oaf*.ipk
-            openwrt-sdk/bin/packages/*/base/appfilter*.ipk
-            openwrt-sdk/bin/packages/*/luci/luci-compat*.ipk
-            openwrt-sdk/bin/packages/*/luci/luci-app-oaf*.ipk
-            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk
+            openwrt-sdk/bin/targets/x86/64/packages/kmod-oaf*.ipk
+            openwrt-sdk/bin/*/kmod-oaf*.ipk
+            openwrt-sdk/bin/packages/x86_64/base/appfilter*.ipk
+            openwrt-sdk/bin/packages/x86_64/luci/luci-compat*.ipk
+            openwrt-sdk/bin/packages/x86_64/base/luci-app-oaf*.ipk
+            openwrt-sdk/bin/packages/x86_64/base/luci-i18n-oaf-zh-cn*.ipk
