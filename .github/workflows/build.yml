@@ -1,0 +1,59 @@
+name: Build OpenAppFilter
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: openwrtorg/sdk:latest
+      options: --privileged
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive  # 重要！项目包含子模块
+
+    - name: Prepare OpenWrt SDK
+      run: |
+        # 安装编译依赖
+        sudo apt-get update -y
+        sudo apt-get install -y git subversion build-essential
+
+    - name: Setup feeds
+      run: |
+        # 配置feeds（根据项目需要）
+        echo src-git packages https://git.openwrt.org/feed/packages.git >> feeds.conf.default
+        echo src-git luci https://git.openwrt.org/project/luci.git >> feeds.conf.default
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Copy package to SDK
+      run: |
+        # 将项目复制到SDK的package目录
+        mkdir -p package/openappfilter
+        cp -r $GITHUB_WORKSPACE/* package/openappfilter/
+
+    - name: Configure and compile
+      run: |
+        # 配置并编译
+        make defconfig
+        make package/openappfilter/compile V=s
+
+    - name: Collect packages
+      run: |
+        # 创建存放产物的目录
+        mkdir -p artifacts
+        # 复制所有生成的ipk文件
+        find bin -name '*.ipk' -exec cp {} artifacts/ \;
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: OpenAppFilter-IPKs
+        path: artifacts/
