@@ -49,11 +49,11 @@ jobs:
       - name: Compile packages
         run: |
           cd openwrt-sdk
-          make package/OpenAppFilter/oaf/compile V=s || true
-          make package/OpenAppFilter/open-app-filter/compile V=s || true
-          make package/OpenAppFilter/luci-app-oaf/compile V=s || true
+          make package/OpenAppFilter/oaf/compile V=s
+          make package/OpenAppFilter/open-app-filter/compile V=s
+          make package/OpenAppFilter/luci-app-oaf/compile V=s
           if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            make package/OpenAppFilter/luci-i18n-oaf-zh-cn/compile V=s || true
+            make package/OpenAppFilter/luci-i18n-oaf-zh-cn/compile V=s
           fi
 
       - name: Upload IPK files
