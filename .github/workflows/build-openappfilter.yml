@@ -34,12 +34,12 @@ jobs:
       # 步骤 5：复制 OpenAppFilter 组件到 SDK
       - name: Prepare packages
         run: |
-          mkdir -p openwrt-sdk/package/openappfilter
-          cp -r $GITHUB_WORKSPACE/luci-app-oaf openwrt-sdk/package/openappfilter/
-          cp -r $GITHUB_WORKSPACE/oaf openwrt-sdk/package/openappfilter/
-          cp -r $GITHUB_WORKSPACE/open-app-filter openwrt-sdk/package/openappfilter/
+          mkdir -p openwrt-sdk/package/OpenAppFilter
+          cp -r $GITHUB_WORKSPACE/luci-app-oaf openwrt-sdk/package/OpenAppFilter/
+          cp -r $GITHUB_WORKSPACE/oaf openwrt-sdk/package/OpenAppFilter/
+          cp -r $GITHUB_WORKSPACE/open-app-filter openwrt-sdk/package/OpenAppFilter/
           if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            cp -r $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn openwrt-sdk/package/openappfilter/
+            cp -r $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn openwrt-sdk/package/OpenAppFilter/
           fi
 
       # 步骤 6：配置编译选项
@@ -58,11 +58,11 @@ jobs:
       - name: Compile packages
         run: |
           cd openwrt-sdk
-          make package/openappfilter/oaf/compile V=s
-          make package/openappfilter/open-app-filter/compile V=s
-          make package/openappfilter/luci-app-oaf/compile V=s
+          make package/OpenAppFilter/oaf/compile V=s
+          make package/OpenAppFilter/open-app-filter/compile V=s
+          make package/OpenAppFilter/luci-app-oaf/compile V=s
           if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
-            make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s
+            make package/OpenAppFilter/luci-i18n-oaf-zh-cn/compile V=s
           fi
 
       # 步骤 8：上传生成的 IPK 文件
