@@ -25,7 +25,7 @@ jobs:
           mv openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64 openwrt-sdk
 
       # 步骤 4：更新并安装 feeds
-      - name: Update 和 install feeds
+      - name: Update and install feeds
         run: |
           cd openwrt-sdk
           ./scripts/feeds update -a
@@ -35,24 +35,44 @@ jobs:
       - name: Prepare packages
         run: |
           mkdir -p openwrt-sdk/package/openappfilter
-          cp -r luci-app-oaf openwrt-sdk/package/
-          cp -r oaf openwrt-sdk/package/
-          cp -r open-app-filter openwrt-sdk/package/openappfilter/
+          cp -r $GITHUB_WORKSPACE/luci-app-oaf openwrt-sdk/package/openappfilter/
+          cp -r $GITHUB_WORKSPACE/oaf openwrt-sdk/package/openappfilter/
+          cp -r $GITHUB_WORKSPACE/open-app-filter openwrt-sdk/package/openappfilter/
+          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
+            cp -r $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn openwrt-sdk/package/openappfilter/
+          fi
 
-      # 步骤 6：开始编译
+      # 步骤 6：配置编译选项
+      - name: Configure build options
+        run: |
+          cd openwrt-sdk
+          echo "CONFIG_PACKAGE_luci-app-oaf=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-oaf=y" >> .config
+          echo "CONFIG_PACKAGE_appfilter=y" >> .config
+          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
+            echo "CONFIG_PACKAGE_luci-i18n-oaf-zh-cn=y" >> .config
+          fi
+          make defconfig
+
+      # 步骤 7：开始编译
       - name: Compile packages
         run: |
           cd openwrt-sdk
-          make defconfig
-          make package/luci-app-oaf/compile V=s
-          make package/oaf/compile V=s
+          make package/openappfilter/oaf/compile V=s
           make package/openappfilter/open-app-filter/compile V=s
+          make package/openappfilter/luci-app-oaf/compile V=s
+          if [ -d $GITHUB_WORKSPACE/luci-i18n-oaf-zh-cn ]; then
+            make package/openappfilter/luci-i18n-oaf-zh-cn/compile V=s
+          fi
 
-      # 步骤 7：上传生成的 IPK 文件
+      # 步骤 8：上传生成的 IPK 文件
       - name: Upload IPK files
         uses: actions/upload-artifact@v4
         with:
           name: openappfilter-ipk
           path: |
-            openwrt-sdk/bin/packages/*/base/*.ipk
-            openwrt-sdk/bin/packages/*/luci/*.ipk
+            openwrt-sdk/bin/packages/*/base/kmod-oaf*.ipk
+            openwrt-sdk/bin/packages/*/base/appfilter*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-compat*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-app-oaf*.ipk
+            openwrt-sdk/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk
