@@ -33,7 +33,8 @@ jobs:
 
       - name: Copy OAF Source Code to SDK
         run: |
-          cp -r . openwrt-sdk/package/OpenAppFilter
+          mkdir -p openwrt-sdk/package/OpenAppFilter
+          rsync -av --exclude '.git' . openwrt-sdk/package/OpenAppFilter/
 
       - name: Open Compile Configuration
         run: |
