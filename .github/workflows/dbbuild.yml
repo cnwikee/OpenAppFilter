@@ -19,43 +19,46 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip wget zlib1g-dev # 安装编译所需的基础依赖
 
-      - name: Prepare OpenWrt Source
+      - name: Download OpenWrt SDK
         run: |
-          git clone https://github.com/openwrt/openwrt
-          cd openwrt
+          wget https://downloads.openwrt.org/releases/22.03.7/targets/x86/64/openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
+          tar -xvf openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
+          mv openwrt-sdk-22.03.7-x86-64_gcc-11.2.0_musl.Linux-x86_64 openwrt-sdk
+
+      - name: Update and install feeds
+        run: |
+          cd openwrt-sdk
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-          make defconfig
-          make V=s # 克隆OpenWrt源并进行初始化编译操作
 
-      - name: Download OAF Source Code
+      - name: Copy OAF Source Code to SDK
         run: |
-          git clone https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter # 下载OAF源代码到OpenWrt的package目录
+          cp -r . openwrt-sdk/package/OpenAppFilter
 
       - name: Open Compile Configuration
         run: |
-          cd openwrt
+          cd openwrt-sdk
           echo "CONFIG_PACKAGE_luci-app-oaf=y" >>.config  
           make defconfig  # 配置OAF编译选项
 
       - name: Compile OAF Separately
         run: |
-          cd openwrt
-          make package/luci-app-oaf/compile V=s # 单独编译luci-app-oaf组件
+          cd openwrt-sdk
+          make package/OpenAppFilter/compile V=s # 编译OpenAppFilter相关组件
 
       - name: Compile the Entire Firmware (Optional)
         run: |
-          cd openwrt
+          cd openwrt-sdk
           make V=s # 编译整个固件，若仅需特定IPK，此步骤可注释掉
 
       - name: Collect Compiled IPKs
         run: |
           mkdir -p compiled_ipks
-          cp -r openwrt/bin/packages/*/base/kmod-oaf*.ipk compiled_ipks/
-          cp -r openwrt/bin/packages/*/packages/appfilter*.ipk compiled_ipks/
-          cp -r openwrt/bin/packages/*/luci/luci-compat*.ipk compiled_ipks/
-          cp -r openwrt/bin/packages/*/luci/luci-app-oaf*.ipk compiled_ipks/
-          cp -r openwrt/bin/packages/*/luci/luci-i18n-oaf-zh-cn*.ipk compiled_ipks/ # 将编译生成的IPK文件收集到指定目录
+          find openwrt-sdk/bin -name "kmod-oaf*.ipk" -exec cp {} compiled_ipks/ \;
+          find openwrt-sdk/bin -name "appfilter*.ipk" -exec cp {} compiled_ipks/ \;
+          find openwrt-sdk/bin -name "luci-compat*.ipk" -exec cp {} compiled_ipks/ \;
+          find openwrt-sdk/bin -name "luci-app-oaf*.ipk" -exec cp {} compiled_ipks/ \;
+          find openwrt-sdk/bin -name "luci-i18n-oaf-zh-cn*.ipk" -exec cp {} compiled_ipks/ \;
 
       - name: Upload Compiled IPKs as Artifact
         uses: actions/upload-artifact@v4
